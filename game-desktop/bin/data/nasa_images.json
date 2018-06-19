@@ -1,0 +1,32 @@
+{
+	"background1": {
+		"x": 0,
+		"y": 0,
+		"width": 480,
+		"height": 320,
+		"size_width": 960,
+		"size_height": 640,
+		"texture": "data/background/hs-2005-12-e.png",
+		"credits": "NASA, ESA, and The Hubble Heritage Team (STScI/AURA)."
+	},
+	"background2": {
+		"x": 0,
+		"y": 0,
+		"width": 480,
+		"height": 320,
+		"size_width": 960,
+		"size_height": 640,
+		"texture": "data/background/hs-2006-55-a.png",
+		"credits": "NASA, ESA, and The Hubble Heritage Team (STScI/AURA)."
+	},
+	"background3": {
+		"x": 0,
+		"y": 0,
+		"width": 480,
+		"height": 320,
+		"size_width": 960,
+		"size_height": 640,
+		"texture": "data/background/hs-2013-12-a.png",
+		"credits": "NASA, ESA, and The Hubble Heritage Team (STScI/AURA)."
+	}
+}

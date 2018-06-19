@@ -1,0 +1,18 @@
+[
+	{
+	"key": "press",
+	"file": "data/press.wav"
+	},
+	{
+	"key": "appear",
+	"file": "data/appear.wav"
+	},
+	{
+	"key": "wind",
+	"file": "data/wind.wav"
+	},
+	{
+	"key": "voice",
+	"file": "data/voice.wav"
+	},
+]

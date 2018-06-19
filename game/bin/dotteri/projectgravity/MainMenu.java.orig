@@ -1,0 +1,186 @@
+package dotteri.projectgravity;
+
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g2d.NinePatch;
+import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.scenes.scene2d.Actor;
+import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.ui.*;
+import com.badlogic.gdx.scenes.scene2d.utils.*;
+import com.badlogic.gdx.utils.Array;
+
+public class MainMenu extends MyGameScreen{
+	
+	private Button arcade_button = null;
+	private Button arcade_level_up = null;
+	private Button arcade_level_down = null;
+	private Label level = null;
+	private Button option_button = null;
+	private Button exit_button = null;
+	
+	class StartArcade extends ClickListener{
+		MyGame mygame = null;
+		public StartArcade(MyGame mygame){
+			this.mygame = mygame;
+		}
+		
+		@Override
+		public void clicked(InputEvent event, float x, float y){
+			mygame.engine.reset();
+			mygame.setArcadeGameMode();
+			mygame.setScreenEngine();
+			mygame.playSound("press");
+		}
+		
+	}
+	
+	class DecreaseArcadeLevel extends ClickListener{
+		
+		MyGame mygame = null;
+		public DecreaseArcadeLevel(MyGame mygame){
+			this.mygame = mygame;
+		}
+		
+		@Override
+		public void clicked(InputEvent event, float x, float y){
+			mygame.arcade_gamemode.levelDown();
+			level.setText(mygame.arcade_gamemode.getLevelString());
+		}
+	}
+	
+	class IncreaseArcadeLevel extends ClickListener{
+		
+		MyGame mygame = null;
+		public IncreaseArcadeLevel(MyGame mygame){
+			this.mygame = mygame;
+		}
+		
+		@Override
+		public void clicked(InputEvent event, float x, float y){
+			mygame.arcade_gamemode.levelUp();
+			level.setText(mygame.arcade_gamemode.getLevelString());
+		}
+	}
+	
+	class Exit extends ClickListener{
+		
+		@Override
+		public void clicked(InputEvent event, float x, float y){
+			mygame.playSound("press");
+			Gdx.app.exit();
+		}
+	}
+	
+	public void create(MyGame mygame){
+		super.create(mygame);
+		
+		System.out.print("actors in MainMenu: ");
+		System.out.println(stage.getActors().size);
+		System.out.println(stage.getActors().items[0].toString() );
+		
+		//arcade button
+		arcade_button = new TextButton("ARCADE", GuiElements.getTextButtonStyle() );
+		arcade_button.setPosition
+		((mygame.FWIDTH-arcade_button.getWidth() )/2.f, 256.f);
+		arcade_button.addCaptureListener(new StartArcade(mygame));
+		stage.addActor(arcade_button);
+		//arcade level down button
+		arcade_level_down = new Button(GuiElements.getDecrementadorButton() );
+		arcade_level_down.setPosition
+		((mygame.FWIDTH-arcade_button.getWidth() )/2.f + arcade_button.getWidth() + 8.f, arcade_button.getY());
+		arcade_level_down.addCaptureListener(new DecreaseArcadeLevel(mygame) );
+		stage.addActor(arcade_level_down);
+		//label level
+		level = new Label("1", GuiElements.getLabelStyle() );
+		level.setWidth(64.f);
+		level.setPosition
+		((mygame.FWIDTH-arcade_button.getWidth() )/2.f + arcade_button.getWidth() + 64.f, arcade_button.getY());
+		stage.addActor(level);
+		//arcade level up button
+		arcade_level_up = new Button(GuiElements.getIncrementerButton() );
+		arcade_level_up.setPosition
+		((mygame.FWIDTH-arcade_button.getWidth() )/2.f + arcade_button.getWidth() + 128.f, arcade_button.getY());
+		arcade_level_up.addCaptureListener(new IncreaseArcadeLevel(mygame) );
+		stage.addActor(arcade_level_up);
+		//options button
+		option_button = new TextButton("Options", GuiElements.getTextButtonStyle() );
+		option_button.addCaptureListener( GuiElements.getGoToOptions_action() );
+		option_button.setPosition
+		((mygame.FWIDTH-arcade_button.getWidth() )/2.f, 128.f);
+		stage.addActor(option_button);
+		//exit button
+		exit_button = new TextButton("EXIT", GuiElements.getTextButtonStyle() );
+		exit_button.setPosition
+		((mygame.FWIDTH-arcade_button.getWidth() )/2.f, 32.f);
+		exit_button.addCaptureListener( new Exit() );
+		stage.addActor(exit_button);
+		
+		//Label author
+		
+		Label.LabelStyle small_style = new Label.LabelStyle(mygame.font8, Color.WHITE);
+		
+		Label author = new Label(mygame.AUTHOR, small_style );
+		author.setPosition(8.f, 8.f);
+		stage.addActor(author);
+		
+		//Label version
+		
+		Label version = new Label(mygame.VERSION, small_style);
+		version.setPosition(mygame.FWIDTH - version.getWidth() - 8.f, 8.f);
+		stage.addActor(version);
+		
+		//Title
+		
+		Label.LabelStyle title_style = new Label.LabelStyle(mygame.font64, Color.WHITE);
+		Label title = new Label(mygame.TITLE, title_style);
+		title.setPosition((mygame.FWIDTH - title.getWidth()) / 2.f, mygame.FHEIGHT - title.getHeight() );
+		stage.addActor(title);
+		
+		//this.setRotationSpeed(1.f);
+		
+	}
+	
+	@Override
+	public void render(float delta) {
+		// TODO Auto-generated method stub
+		super.render(delta);
+	}
+
+	@Override
+	public void resize(int width, int height) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void show() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void hide() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void pause() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void resume() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void dispose() {
+		// TODO Auto-generated method stub
+		super.dispose();
+	}
+	
+}

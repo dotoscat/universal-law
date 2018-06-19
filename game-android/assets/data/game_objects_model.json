@@ -1,0 +1,84 @@
+{
+	"collector": {
+		"texture": "data/game_objects.png",
+		"x": 8,
+		"y": 44,
+		"width": 64,
+		"height": 64,
+		"size_width": 8,
+		"size_height": 8,
+	},
+	"gravitational_pit": {
+		"texture": "data/game_objects.png",
+		"x": 8,
+		"y": 8,
+		"width": 32,
+		"height": 32,
+	},
+	"star": {
+		"texture": "data/game_objects.png",
+		"x": 8,
+		"y": 44,
+		"width": 64,
+		"height": 64,
+		"size_width": 32,
+		"size_height": 32
+	},
+	"trap": {
+		"texture": "data/game_objects.png",
+		"x": 128,
+		"y": 8,
+		"width": 32,
+		"height": 32,
+	},
+	"trail": {
+		"texture": "data/game_objects.png",
+		"x": 168,
+		"y": 8,
+		"width": 32,
+		"height": 32,
+	},
+	"stardust": {
+		"texture": "data/stardust.png",
+		"x": 0,
+		"y": 0,
+		"width": 32,
+		"height": 32,
+	},
+	"nova": {
+		"texture": "data/game_objects.png",
+		"x": 126,
+		"y": 2,
+		"width": 128,
+		"height": 128,
+		"size_width": 128,
+		"size_height": 128
+	},
+	"shock_wave": {
+		"texture": "data/game_objects.png",
+		"x": 2,
+		"y": 112,
+		"width": 132,
+		"height": 132,
+		"size_width": 132,
+		"size_height": 132
+	},
+	"accretion": {
+		"texture": "data/game_objects.png",
+		"x": 144,
+		"y": 144,
+		"width": 64,
+		"height": 64,
+		"size_width": 128,
+		"size_height": 128
+	},
+	"bright1": {
+		"texture": "data/game_objects.png",
+		"x": 80,
+		"y": 8,
+		"width": 32,
+		"height": 32,
+		"size_width": 42,
+		"size_height": 42
+	}
+}

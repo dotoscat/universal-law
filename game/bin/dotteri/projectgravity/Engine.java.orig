@@ -1,0 +1,651 @@
+package dotteri.projectgravity;
+
+import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.scenes.*;
+import com.badlogic.gdx.scenes.scene2d.*;
+import com.badlogic.gdx.scenes.scene2d.ui.*;
+import com.badlogic.gdx.scenes.scene2d.ui.Label.LabelStyle;
+import com.badlogic.gdx.scenes.scene2d.utils.ClickListener;
+import com.badlogic.gdx.scenes.scene2d.utils.SpriteDrawable;
+import com.badlogic.gdx.utils.Scaling;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.math.*;
+import com.badlogic.gdx.graphics.*;
+import com.badlogic.gdx.graphics.g2d.BitmapFont.TextBounds;
+import com.badlogic.gdx.graphics.g2d.*;
+import com.sun.org.apache.xerces.internal.util.Status;
+
+public class Engine extends MyGameScreen {
+
+	class EventListener extends com.badlogic.gdx.scenes.scene2d.InputListener{
+		
+		Engine engine = null;
+		
+		public EventListener(Engine engine){
+			this.engine = engine;
+		}
+		
+		public boolean touchDown(InputEvent event, float x, float y, int pointer, int button){
+			//System.out.format("Touch: %g, %g, %d, %d\n", x, y, pointer, button);
+			player_blackhole.setExists(true);
+			player_blackhole.set(x, y, 0.25f);
+			return true;
+		}
+		
+		public void touchDragged(InputEvent event, float x, float y, int pointer){
+			player_blackhole.setPosition(x, y);
+		}
+		
+	}
+	
+	class PauseEngine extends ClickListener{
+		Engine engine = null;
+		public PauseEngine(Engine engine){
+			this.engine = engine;
+		}
+		
+		@Override
+		public void clicked(InputEvent event, float x, float y){
+			engine.pauseEngine();
+		}	
+	}
+	
+	class ContinueEngine extends ClickListener{
+		Engine engine = null;
+		public ContinueEngine(Engine engine){
+			this.engine = engine;
+		}
+		
+		@Override
+		public void clicked(InputEvent event, float x, float y){
+			engine.continueEngine();
+		}	
+	}
+	
+	class ResetEngine extends ClickListener{
+		Engine engine = null;
+		public ResetEngine(Engine engine){
+			this.engine = engine;
+		}
+		
+		@Override
+		public void clicked(InputEvent event, float x, float y){
+			engine.reset();
+		}	
+	}
+	
+	class ExitEngine extends ClickListener{
+		Engine engine = null;
+		public ExitEngine(Engine engine){
+			this.engine = engine;
+		}
+		
+		@Override
+		public void clicked(InputEvent event, float x, float y){
+			engine.exitEngine();
+		}	
+	}
+	
+	enum State{
+		Running,
+		Pause,
+		Ready,
+		GameOver,
+	};
+	
+	State state = State.Ready;
+	
+	private GameMode gamemode = null;
+		
+	NeutronStar collector = null;
+	Blackhole player_blackhole = null;
+	
+	final static int STARS = 32;
+	Star[] star = null;
+	
+	final static int NOVA = 8;
+	Nova[] nova = null;
+	
+	final static int SHOCKWAVE = 8;
+	ShockWave[] shockwave = null;
+	
+	final static int TRAILS = 64;
+	Trail[] trail = null;
+	int trail_length = 0;
+	
+	final static int MESSAGE = 16;
+	Message[] message = null;
+	
+	Rectangle level_area = null;
+	Rectangle orb_spawn_zone = null;
+		
+	StringBuilder string_buffer = null;
+		
+	Label HUD_left = null;
+	StringBuilder HUD_strbuilder_left = null;
+	Label HUD_center = null;
+	StringBuilder HUD_strbuilder_center = null;
+	Label HUD_right = null;
+	StringBuilder HUD_strbuilder_right = null;
+	
+	Label label_points = null;
+	Label label_time = null;
+	
+	Group pause_options = null;
+	Button pause_button = null;
+	
+	Advert announce = null;
+	
+	static final float FACTOR = 10000.f;
+		
+	public void create(MyGame mygame){
+		super.create(mygame);
+		
+		string_buffer = new StringBuilder();
+		
+		level_area = new Rectangle(0.f, 0.f, 960.f, 640.f);
+		orb_spawn_zone = new Rectangle();
+		orb_spawn_zone.x = 64.f;
+		orb_spawn_zone.y = 64.f;
+		orb_spawn_zone.width = 960.f-64.f;
+		orb_spawn_zone.height = 640.f-64.f;
+				
+		//Actor click_area
+		Actor click_area = new Actor();
+		click_area.setBounds(0.f, 0.f, mygame.FWIDTH, mygame.FHEIGHT);
+		click_area.setSize(mygame.FWIDTH, mygame.FHEIGHT);
+		click_area.addCaptureListener(new EventListener(this));
+		stage.addActor(click_area);
+		//
+		
+		player_blackhole = new Blackhole(64.f, mygame);
+		player_blackhole.setModel(mygame.game_objects_model, "gravitational_pit", mygame.assets);
+		player_blackhole.setSize(32, 32);
+		player_blackhole.setExists(true);
+		player_blackhole.setMass(1.f);
+		player_blackhole.setStardustPerSec(2, 0.25f);
+		
+		collector = new NeutronStar(this);
+		collector.setModel(mygame.game_objects_model, "collector", mygame.assets);
+		collector.setSize(32, 32);
+		collector.setPosition(333.f, 333.f);
+		collector.setExists(true);
+		collector.setMass(1.f);
+		collector.setRadius(16.f);
+
+		stage.addActor(collector);
+		stage.addActor(player_blackhole);
+		
+		nova = new Nova[NOVA];
+		for(int i = 0; i < NOVA; i += 1){
+			nova[i] = new Nova();
+			nova[i].setSprite(mygame.game_objects_model, "nova", mygame.assets);
+			stage.addActor(nova[i]);
+		}
+		
+		star = new Star[STARS];
+		for(int i = 0; i < STARS; i += 1){
+			star[i] = new Star(this);
+			star[i].setModel(mygame.game_objects_model, "star", mygame.assets);
+			stage.addActor(star[i]);
+			star[i].setSize(32.f, 32.f);
+			star[i].setExists(false);
+			star[i].setRadius(16.f);
+		}
+		
+		shockwave = new ShockWave[SHOCKWAVE];
+		for(int i = 0; i < SHOCKWAVE; i += 1){
+			shockwave[i] = new ShockWave();
+			shockwave[i].setSprite(mygame.game_objects_model, "shock_wave", mygame.assets);
+			stage.addActor(shockwave[i]);
+		}
+		
+		trail = new Trail[TRAILS];
+		for(int i = 0; i < TRAILS; i += 1){
+			trail[i] = new Trail(mygame);
+			stage.addActor(trail[i]);
+		}
+		
+		message = new Message[MESSAGE];
+		for(int i = 0; i < MESSAGE; i += 1){
+			message[i] = new Message("", GuiElements.getMessageStyle() );
+			stage.addActor(message[i]);
+		}
+		
+		//test
+		trail[0].setPosition(77.f, 77.f);
+		trail[0].setExist(true);
+		
+		//HUD
+		Label.LabelStyle hud_style = new Label.LabelStyle();
+		hud_style.font = mygame.font32;
+		hud_style.fontColor = Color.CYAN;
+				
+		HUD_left = new Label("", hud_style);
+		HUD_left.setPosition(8.f, mygame.FHEIGHT - HUD_left.getHeight() - 16.f);
+		stage.addActor(HUD_left);
+		HUD_center = new Label("", hud_style);
+		HUD_center.setY( mygame.FHEIGHT - HUD_center.getHeight() - 16.f);
+		stage.addActor(HUD_center);
+		HUD_right = new Label("", hud_style);
+		HUD_right.setY( mygame.FHEIGHT - HUD_right.getHeight() - 16.f);
+		stage.addActor(HUD_right);
+		
+		HUD_strbuilder_left = new StringBuilder();
+		HUD_strbuilder_center = new StringBuilder();
+		HUD_strbuilder_right = new StringBuilder();
+		
+		//pause management
+		pause_button = new Button(GuiElements.getPauseButton() );
+		pause_button.addCaptureListener( new PauseEngine(this) );
+		pause_button.setPosition((mygame.FWIDTH - pause_button.getWidth()) / 2.f, 8.f);
+		stage.addActor(pause_button);
+		
+		pause_options = new Group();
+		stage.addActor(pause_options);
+		pause_options.setVisible(false);
+		
+		TextButton options_continue = new TextButton("Continue", GuiElements.getTextButtonStyle() );
+		options_continue.setPosition(120.f, 300.f);
+		options_continue.addCaptureListener( new ContinueEngine(this) );
+		pause_options.addActor(options_continue);
+		
+		TextButton options_options = new TextButton("Options", GuiElements.getTextButtonStyle() );
+		options_options.setPosition(120.f, 250.f);
+		options_options.addCaptureListener( GuiElements.getGoToOptions_action() );
+		pause_options.addActor(options_options);
+		
+		TextButton options_reset = new TextButton("Reset", GuiElements.getTextButtonStyle() );
+		options_reset.setPosition(120.f, 200.f);
+		options_reset.addCaptureListener( new ResetEngine(this) );
+		pause_options.addActor(options_reset);
+		
+		TextButton options_exit = new TextButton("Exit", GuiElements.getTextButtonStyle() );
+		options_exit.setPosition(120.f, 150.f);
+		options_exit.addCaptureListener( new ExitEngine(this) );
+		pause_options.addActor(options_exit);
+				
+		//Engine announce
+		announce = new Advert("", GuiElements.getAnnounceStyle(), mygame.FWIDTH, mygame.FHEIGHT );
+		stage.addActor(announce);
+		
+	}
+	
+	@Override
+	public void render(float delta) {
+		// TODO Auto-generated method stub
+		
+		if (state == State.Ready && announce.isOver() ){
+			state = State.Running;
+			announce.setVisible(false);
+			super.render(delta);
+			return;
+		}
+		
+		if (state == State.GameOver){
+			super.render(delta);
+			return;
+		}
+		
+		if (state == State.Running){
+
+		if (!collector.isInsideArea(level_area) || gamemode.isGameOver() ){
+			state = State.GameOver;
+			this.setAnnounce_GameOver();
+		}
+		
+		if (player_blackhole.exists() && collector.checkCollisionWith(player_blackhole)){
+			state = State.GameOver;
+			this.setAnnounce_GameOver();
+		}
+				
+		for(int i = 0; i < STARS; i += 1){
+			if (star[i].isLiving() && collector.checkCollisionWith(star[i]) ){
+				Star star = this.star[i];
+				if (gamemode != null){
+					gamemode.starIsDevoured(star);
+					star.kill();
+				}
+			}
+		}
+		
+		if(player_blackhole.exists()){
+			collector.applyGravityWith(player_blackhole, delta, FACTOR);
+		}
+		
+		this.setTrail(12.f, 0.25f, 1.f/60.f);
+		
+		if(gamemode != null){
+			gamemode.step(delta);
+		}
+		
+		}//if (state == State.Running)
+		
+		HUD_strbuilder_left.setLength(0);
+		HUD_strbuilder_center.setLength(0);
+		HUD_strbuilder_right.setLength(0);
+		gamemode.updateHUD();
+		HUD_left.setText(HUD_strbuilder_left);
+		
+		HUD_center.setX( (mygame.FWIDTH - HUD_center.getWidth()) / 2.f );
+		HUD_center.setText(HUD_strbuilder_center);
+		
+		HUD_right.setX(mygame.FWIDTH - HUD_right.getWidth() - 8.f);
+		HUD_right.setText(HUD_strbuilder_right);
+		
+		super.render(delta);
+	}
+
+	@Override
+	public void resize(int width, int height) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void show() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void hide() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void pause() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void resume() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void dispose() {
+		// TODO Auto-generated method stub
+		super.dispose();
+	}
+	
+	public Blackhole addBlackhole(float x, float y, float duration){
+		Blackhole a_blackhole = null;
+		/*
+		for(int i = 0; i < BLACKHOLES; i += 1){
+			
+		}
+		a_blackhole.set(x, y, duration);
+		*/
+		return a_blackhole;
+	}
+	
+	public Star addStar(int amount, Color color, float lifespan){
+		Star a_star = null;
+		for(int i = 0;i < STARS; i += 1){
+			if (star[i].isDead()){
+				a_star = star[i];
+				break;
+			}
+		}
+		if (a_star != null){
+			a_star.set(amount, color, lifespan);
+		}
+		return a_star;
+	}
+	
+	public Rectangle getSpawnZone(){
+		return orb_spawn_zone;
+	}
+	
+	private void cleanTrail(){
+		for(Trail a_trail: trail){
+			a_trail.setExist(false);
+		}
+	}
+	
+	private void setTrail(float secs, float step, float dt){
+		Vector2 trail_position = Vector2.tmp;
+		Vector2 trail_velocity = Vector2.tmp2;
+		Vector2 atractor_position = Vector2.tmp3;
+		Vector2 force = null;
+		atractor_position.set(player_blackhole.getPosition() );
+		trail_position.set(collector.getPosition() );
+		trail_velocity.set(collector.getVelocity() );
+		this.cleanTrail();
+		
+		float acum = 0.f;
+		float acum_step = 0.f;
+		int i = 0;
+		while(acum < secs){
+			acum += dt;
+			acum_step += dt;
+			
+			force = Gravity.applyGravity(player_blackhole.getMass(), collector.getMass(),
+				atractor_position, trail_position,
+				dt, FACTOR);
+			trail_velocity.add(force);
+			trail_position.x += trail_velocity.x * dt;
+			trail_position.y += trail_velocity.y * dt;
+			
+			if (acum_step > step){
+				//assign current data to the current trail
+				Trail a_trail = trail[i];
+				a_trail.setPosition(trail_position.x, trail_position.y);
+				a_trail.setExist(true);
+				if (i + 1 < trail.length){
+					i += 1;
+				}
+				acum_step = 0.f;
+			}
+			
+		}//end while
+		trail_length = i;
+	}
+	
+	public boolean checkIfCollidesWithGameElements(GameObject game_object){
+		//player gravity pit
+		//collector
+		//trail
+		//orbs
+		//traps
+		if (player_blackhole.checkCollisionWith(game_object)){
+			return true;
+		}
+		else if (collector.checkCollisionWith(game_object) ){
+			return true;
+		}
+		/*
+		else if (this.checkIfCollidesWithTrail(game_object) ){
+			return true;
+		}
+		*/
+		//check collision with stars
+		for(int i = 0; i < STARS; i += 1){
+			if (star[i].isLiving() && star[i].checkCollisionWith(game_object) ){
+				return true;
+			}
+		}
+		
+		return false;
+	}
+	
+	private boolean checkIfCollidesWithTrail(GameObject gameobject){
+		Vector2 collector_original_position = Vector2.tmp;
+		collector_original_position.set(collector.getPosition() );
+		for(Trail a_trail: trail){
+			if (a_trail.exists() ){
+				collector.setPosition(a_trail.getPosition() );
+				if (collector.checkCollisionWith(gameobject)){
+					collector.setPosition(collector_original_position);
+					return true;
+				}
+			}
+		}
+		collector.setPosition(collector_original_position);
+		return false;
+	}
+		
+	public boolean isGameOver(){
+		return state == State.GameOver;
+	}
+	
+	public boolean isRunning(){
+		return state == State.Running;
+	}
+		
+	public void resetCollectorPosition(){
+		collector.setPosition(mygame.FWIDTH/2.f, mygame.FHEIGHT/2.f);
+	}
+	
+	public void cleanStars(){
+		for(int i = 0; i < STARS; i += 1){
+			star[i].setExists(false);
+		}
+	}
+	
+	public void cleanMessages(){
+		for(int i = 0; i < MESSAGE; i += 1){
+			message[i].reset();
+		}
+	}
+		
+	public void setGameMode(GameMode mode){
+		this.gamemode = mode;
+	}
+	
+	public GameMode getGameMode(){
+		return gamemode;
+	}
+	
+	public void reset(){
+		if(gamemode != null){
+			gamemode.reset();
+		}
+		this.resetCollectorPosition();
+		this.cleanStars();
+		this.cleanMessages();
+		this.cleanEffects();
+		player_blackhole.setExists(false);
+		collector.resetVelocity();
+		state = State.Ready;
+		this.setAnnounce("READY", 1.f, 2.f, 1.f, 0.f, 2.f);
+		pause_button.setDisabled(false);
+		pause_options.setVisible(false);
+	}
+	
+	public void pauseEngine(){
+		state = State.Pause;
+		pause_button.setDisabled(true);
+		pause_options.setVisible(true);
+	}
+	
+	public void continueEngine(){
+		state = State.Running;
+		pause_button.setDisabled(false);
+		pause_options.setVisible(false);
+	}
+	
+	public void exitEngine(){
+		mygame.setScreenMainMenu();
+	}
+	
+	public void addBonusMessage(int points, float x, float y, float velocity_y, float life){
+		string_buffer.setLength(0);
+		string_buffer.append("BONUS ");
+		string_buffer.append(points);
+		this.addMessage(string_buffer.toString(), x, y, velocity_y, life);
+	}
+	
+	public void addGetAmountMessage(int points, float x, float y, float velocity_y, float life){
+		string_buffer.setLength(0);
+		string_buffer.append("+");
+		string_buffer.append(points);
+		this.addMessage(string_buffer.toString(), x, y, velocity_y, life);
+	}
+	
+	public void setAnnounce(String content, float initial_scale, float final_scale, float initial_alpha, float final_alpha, float duration){
+		announce.setText(content);
+		TextBounds bounds = announce.getTextBounds();
+		announce.setPosition((mygame.FWIDTH - bounds.width)/2.f, 
+				(mygame.FHEIGHT - bounds.height)/2.f);
+		announce.set(initial_scale, final_scale, initial_alpha, final_alpha, duration);
+	}
+	
+	public void setAnnounce_GameOver(){
+		this.setAnnounce("GAME OVER", 2.f, 1.f, 0.f, 1.f, 2.f);
+	}
+	
+	public void addMessage(String content, float x, float y, float velocity_y, float life){
+		for(int i = 0; i < MESSAGE; i += 1){
+			if (message[i].isUsed()){
+				continue;
+			}
+			
+			Message a_message = message[i];
+			a_message.setText(content);
+			a_message.setPosition(x, y);
+			a_message.set(velocity_y, life);
+			
+			break;
+		}
+	}
+	
+	public Label getHUD_left(){
+		return HUD_left;
+	}
+	
+	public StringBuilder getHUD_strbuilder_left(){
+		return HUD_strbuilder_left;
+	}
+	
+	public Label getHUD_center(){
+		return HUD_center;
+	}
+	
+	public StringBuilder getHUD_strbuilder_center(){
+		return HUD_strbuilder_center;
+	}
+	
+	public Label getHUD_right(){
+		return HUD_right;
+	}
+	
+	public StringBuilder getHUD_strbuilder_right(){
+		return HUD_strbuilder_right;
+	}
+	
+	public void addNova(float x, float y, float lifespan){
+		for(int i = 0; i < NOVA; i += 1){
+			if (nova[i].isUsed()){
+				continue;
+			}
+			nova[i].set(x, y, lifespan);
+			break;
+		}
+	}
+	
+	public void cleanEffects(){
+		for(int i = 0; i < NOVA; i += 1){
+			nova[i].reset();
+		}
+		for(int i = 0; i < SHOCKWAVE; i += 1){
+			shockwave[i].reset();
+		}
+	}
+	
+	public void addShockWave(float x, float y, float lifespan){
+		for(int i = 0; i < SHOCKWAVE; i += 1){
+			if(shockwave[i].isUsed()){
+				continue;
+			}
+			shockwave[i].set(x, y, lifespan);
+			break;
+		}
+	}
+	
+}

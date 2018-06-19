@@ -1,0 +1,14 @@
+[
+	{
+	"key": "main",
+	"file": "data/main.ogg"
+	},
+	{
+	"key": "wind2",
+	"file": "data/wind2.ogg"
+	},
+	{
+	"key": "theme1",
+	"file": "data/theme1.ogg"
+	},
+]

@@ -1,0 +1,118 @@
+package dotteri.projectgravity;
+
+import com.badlogic.gdx.InputProcessor;
+import com.badlogic.gdx.Screen;
+import com.badlogic.gdx.graphics.Color;
+import com.badlogic.gdx.graphics.g2d.Sprite;
+import com.badlogic.gdx.scenes.scene2d.Stage;
+import com.badlogic.gdx.scenes.scene2d.ui.Image;
+import com.badlogic.gdx.scenes.scene2d.ui.Label;
+import com.badlogic.gdx.scenes.scene2d.utils.SpriteDrawable;
+
+public class MyGameScreen implements Screen {
+	
+	protected MyGame mygame = null;
+	protected Stage stage = null;
+	private Label NASA_credit = null;
+	private Image NASA_background = null;
+	private Sprite NASA_sprite_background = null;
+	private String NASA_background_name = null;
+	
+	float rotation_speed = 0.f;
+	
+	public void create(MyGame mygame){
+		this.mygame = mygame;
+		this.createStage(mygame);
+		
+		NASA_sprite_background = new Sprite();
+		NASA_background = new Image(new SpriteDrawable(NASA_sprite_background));
+		stage.addActor(NASA_background);
+		
+		NASA_credit = new Label("", new Label.LabelStyle(mygame.font8, Color.WHITE));
+		stage.addActor(NASA_credit);
+	}
+	
+	public Stage getStage(){
+		return stage;
+	}
+	
+	private void createStage(MyGame mygame){
+		stage = new Stage(mygame.FWIDTH, mygame.FHEIGHT, true, mygame.batch);
+		stage.setCamera(mygame.camera);
+	}
+	
+	public InputProcessor getInputProcessor(){
+		stage.unfocusAll();
+		return stage;
+	}
+
+	@Override
+	public void render(float delta) {
+		// TODO Auto-generated method stub
+		stage.act(delta);
+		if(rotation_speed != 0){
+			float rotation = NASA_sprite_background.getRotation() + rotation_speed * delta;
+			if (rotation > 359.f){
+				rotation = 0.f;
+				System.out.println("rotate!!");
+			}
+			NASA_sprite_background.setRotation(rotation);
+		}
+		stage.draw();
+	}
+
+	@Override
+	public void resize(int width, int height) {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void show() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void hide() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void pause() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void resume() {
+		// TODO Auto-generated method stub
+		
+	}
+
+	@Override
+	public void dispose() {
+		// TODO Auto-generated method stub
+		stage.dispose();
+	}
+	
+	public void setBackgroundName(String name){
+		NASA_background_name = name;
+	}
+	
+	public void loadBackground(){
+		mygame.LoadNASAImage(NASA_background_name, NASA_sprite_background, NASA_credit);
+		//System.out.format("background %g : %g", NASA_sprite_background.getWidth(), NASA_sprite_background.getHeight());
+		NASA_background.setWidth(NASA_sprite_background.getWidth());
+		NASA_background.setHeight(NASA_sprite_background.getHeight());
+		NASA_sprite_background.setOrigin(NASA_sprite_background.getWidth()/2.f, NASA_sprite_background.getHeight()/2.f);
+		NASA_background.setPosition(0.f, -NASA_sprite_background.getHeight()/4.f);
+		System.out.format("background %g : %g; %g : %g\n", NASA_sprite_background.getX(), NASA_sprite_background.getY(), NASA_sprite_background.getOriginX(), NASA_sprite_background.getOriginY() );
+	}
+	
+	public void setRotationSpeed(float speed){
+		this.rotation_speed = speed;		
+	}
+	
+}
